@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fullName String
+  image    String?
+  balance  Float?  @default(0)
+  email    String  @unique
+  hash     String
+
+  Earning  Earning[]
+  Expense  Expense[]
+  Payments Payments[]
+
+  Family   Family? @relation(fields: [familyId], references: [id])
+  familyId String?
+
+  @@map("users")
+}
+
+model Earning {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  amount Float @default(0)
+
+  type           EarningClass @relation(fields: [earningClassId], references: [id])
+  earningClassId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  @@map("earnings")
+}
+
+model Expense {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  date        DateTime @default(now())
+  name        String
+  description String
+  amount      Float    @default(0)
+
+  // if freq
+  lapse   Lapse?  @relation(fields: [lapseId], references: [id])
+  lapseId String?
+
+  icon   Icons  @relation(fields: [iconId], references: [id])
+  iconId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  Payments Payments[]
+
+  @@map("expenses")
+}
+
+model Payments {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  amount Float?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  expense   Expense @relation(fields: [expenseId], references: [id])
+  expenseId String
+
+  @@map("payments")
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  members   User[]
+
+  @@map("families")
+}
+
+// CATALOGUE
+
+model EarningClass {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  Earnings  Earning[]
+
+  @@map("C_earning_classes")
+}
+
+model Icons {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+  url  String
+
+  Expenses Expense[]
+
+  @@map("C_icons")
+}
+
+model Lapse {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name    String
+  Expense Expense[]
+
+  @@map("C_lapses")
+}

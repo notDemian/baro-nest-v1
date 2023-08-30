@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  balance       Float?    @default(0)
+
+  Earnings Earning[]
+  Expenses Expense[]
+  Payments Payments[]
+
+  Family   Family? @relation(fields: [familyId], references: [id])
+  familyId String?
+}
+
+model Earning {
+  id             String       @id @default(cuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  amount         Decimal      @default(0) @db.Decimal(10, 2)
+  type           EarningClass @relation(fields: [earningClassId], references: [id])
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  earningClassId String
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  date        DateTime @default(now())
+  name        String
+  description String
+  icon        Icons    @relation(fields: [iconsId], references: [id])
+  amount      Decimal  @default(0) @db.Decimal(10, 2)
+
+  // if freq
+  lapse Lapse? @relation(fields: [lapseId], references: [id])
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  iconsId  String
+  Payments Payments[]
+  lapseId  String?
+}
+
+model Payments {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  amount    Decimal?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  expense   Expense @relation(fields: [expenseId], references: [id])
+  expenseId String
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  members   User[]
+}
+
+// CATALOGUE
+
+model EarningClass {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  Earnings  Earning[]
+}
+
+model Icons {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+  url  String
+
+  Expenses Expense[]
+}
+
+model Lapse {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name    String
+  Expense Expense[]
+}
